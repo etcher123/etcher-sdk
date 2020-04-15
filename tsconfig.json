@@ -12,6 +12,7 @@
 		"strictNullChecks": true
 	},
 	"include": [
+		"examples",
 		"lib"
 	]
 }
