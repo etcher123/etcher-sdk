@@ -13,7 +13,7 @@
     "test": "npm run lint && mocha -r ts-node/register tests/**/*.spec.ts",
     "prettier": "resin-lint --typescript --fix lib typings examples tests",
     "lint": "resin-lint --typescript lib typings examples tests",
-    "build": "rimraf build doc && tsc && npm run doc",
+    "build": "tsc",
     "doc": "typedoc --readme none --theme markdown --mode file --out doc lib && sed -i 's|'$(pwd)'||g' $(find doc -type f)",
     "prepublish": "npm run build"
   },
