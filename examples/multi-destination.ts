@@ -72,6 +72,7 @@ const main = async ({
 	}
 	const destinationDrives = Array.from(deviceScanner.drives.values()).filter(
 		drive => {
+			console.log('Device found:', drive.device);
 			return devices.includes(drive.device!);
 		},
 	);
