@@ -33,7 +33,7 @@ async function main() {
 	deviceScanner.on(
 		'attach',
 		async (drive: scanner.adapters.AdapterSourceDestination) => {
-			console.log('attach', JSON.stringify(drive));
+			console.log('attach', JSON.stringify(drive, null, 2));
 			if (drive.emitsProgress) {
 				drive.on('progress', (progress: number) => {
 					console.log(drive, progress, '%');
@@ -44,11 +44,11 @@ async function main() {
 	deviceScanner.on(
 		'detach',
 		(drive: scanner.adapters.AdapterSourceDestination) => {
-			console.log('detach', JSON.stringify(drive));
+			console.log('detach', JSON.stringify(drive, null, 2));
 		},
 	);
 	deviceScanner.on('error', (error: Error) => {
-		console.log('error', JSON.stringify(error));
+		console.log('error', JSON.stringify(error, null, 2));
 	});
 	await deviceScanner.start();
 	const d = deviceScanner.getBy(
