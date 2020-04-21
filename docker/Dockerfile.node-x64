@@ -1,0 +1,30 @@
+FROM ubuntu:latest
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+ARG NODE_ARCH=x64
+ARG NODE_VERSION=v12.16.2
+ARG NODE_PACKAGE=node-${NODE_VERSION}-linux-${NODE_ARCH}
+ARG NODE_URL=https://nodejs.org/dist/${NODE_VERSION}/${NODE_PACKAGE}.tar.xz
+
+# Install tooling for "npm install"
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    git \
+    python3 \
+    wget \
+    xz-utils
+
+# Install Node.js
+RUN wget -q -O- ${NODE_URL} | tar -xJ -C /opt
+
+# Update environment
+ENV PATH="/opt/${NODE_PACKAGE}/bin:${PATH}"
+ENV NO_UPDATE_NOTIFIER=
+
+# Install additional node packages
+RUN npm install -g \
+    license-checker \
+    pkg
