@@ -36,9 +36,16 @@ pkg_arch() {
 pkg_platform() {
 
     # See <https://github.com/zeit/pkg#targets>
-    # TODO Check on which platform we're running, somehow
 
     local platform=linux
+
+    if [[ "${AGENT_NAME:-}" = "Azure Pipelines"* ]]; then
+        case "$AGENT_OS" in
+            (Linux)      platform=linux ;;
+            (Darwin)     platform=macos ;;
+            (Windows_NT) platform=win   ;;
+        esac
+    fi
 
     echo "$platform"
 }
