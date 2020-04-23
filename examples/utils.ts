@@ -48,33 +48,33 @@ function bytesToMebibytes(bytes: number): string {
 	return (bytes / 1024 / 1024).toFixed(2);
 }
 
-function progressBarLabel(
-	progress: multiWrite.MultiDestinationProgress,
-): string {
-	const sourceProgress =
-		(!progress.sparse && progress.size === undefined) ||
-		(progress.size !== undefined && progress.bytes > progress.size);
-	let size: number | undefined;
-	let bytes: number | undefined;
-	if (sourceProgress) {
-		size = progress.compressedSize;
-		bytes = progress.rootStreamPosition;
-	} else if (progress.sparse) {
-		size = progress.blockmappedSize;
-		bytes = progress.bytes;
-	} else {
-		size = progress.size;
-		bytes = progress.bytes;
-	}
-	return [
-		`${Math.floor(progress.percentage || 0)}%`,
-		`${bytes} / ${size} ${sourceProgress ? 'compressed ' : ''}bytes`,
-		`position in output: ${progress.position}`,
-		`current: ${bytesToMebibytes(progress.speed)} MiB/s`,
-		`average: ${bytesToMebibytes(progress.averageSpeed)} MiB/s`,
-		`${Math.round(progress.eta || 0)} seconds left`,
-	].join(' ; ');
-}
+// function progressBarLabel(
+// 	progress: multiWrite.MultiDestinationProgress,
+// ): string {
+// 	const sourceProgress =
+// 		(!progress.sparse && progress.size === undefined) ||
+// 		(progress.size !== undefined && progress.bytes > progress.size);
+// 	let size: number | undefined;
+// 	let bytes: number | undefined;
+// 	if (sourceProgress) {
+// 		size = progress.compressedSize;
+// 		bytes = progress.rootStreamPosition;
+// 	} else if (progress.sparse) {
+// 		size = progress.blockmappedSize;
+// 		bytes = progress.bytes;
+// 	} else {
+// 		size = progress.size;
+// 		bytes = progress.bytes;
+// 	}
+// 	return [
+// 		`${Math.floor(progress.percentage || 0)}%`,
+// 		`${bytes} / ${size} ${sourceProgress ? 'compressed ' : ''}bytes`,
+// 		`position in output: ${progress.position}`,
+// 		`current: ${bytesToMebibytes(progress.speed)} MiB/s`,
+// 		`average: ${bytesToMebibytes(progress.averageSpeed)} MiB/s`,
+// 		`${Math.round(progress.eta || 0)} seconds left`,
+// 	].join(' ; ');
+// }
 
 function createProgressBar(
 	step: string,
@@ -88,8 +88,9 @@ function createProgressBar(
 				progress.percentage === undefined
 					? progressBar.curr
 					: progress.percentage;
-			const delta = Math.floor(percentage) - progressBar.curr;
-			progressBar.tick(delta, { label: progressBarLabel(progress) });
+			// const delta = Math.floor(percentage) - progressBar.curr;
+//			progressBar.tick(delta, { label: progressBarLabel(progress) });
+            console.log(percentage)
 		}
 		return [progressBar, update];
 	} else {
