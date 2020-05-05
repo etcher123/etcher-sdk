@@ -76,6 +76,7 @@ done
 
 log "Export everything needed in one directory"
 
+rm -fr export
 mkdir export
 
 for example in $EXAMPLES; do
