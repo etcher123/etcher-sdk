@@ -11,7 +11,7 @@ set -e
 set -u
 set -x
 
-DEFAULT_EXAMPLES="file-to-file multi-destination scanner"
+DEFAULT_EXAMPLES="etcher-sdk-cli"    # file-to-file multi-destination scanner
 EXAMPLES=${@:-$DEFAULT_EXAMPLES}
 
 
