@@ -219,6 +219,9 @@ export async function pipeSourceToDestinations(
 			_onRootStreamProgress,
 		);
 	}
+
+	await growLastPartition(destination);
+
 	updateState('finished');
 	await Promise.all([source.close(), destination.close()]);
 	return { failures, bytesWritten };
@@ -378,4 +381,12 @@ async function runVerifier(
 		verifier.on('progress', onProgress);
 		verifier.run();
 	});
+}
+
+async function growLastPartition(
+	destination: MultiDestination,
+) {
+	for (var dst of destination.destinations) {
+		await dst.growLastPartition();
+	}
 }

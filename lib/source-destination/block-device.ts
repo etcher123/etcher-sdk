@@ -21,6 +21,9 @@ import { ReadResult, WriteResult } from 'file-disk';
 import * as fs from 'fs';
 import { platform } from 'os';
 
+import * as GPT from 'gpt';
+import * as MBR from 'mbr';
+
 import {
 	BlockWriteStream,
 	ProgressBlockWriteStream,
@@ -53,7 +56,7 @@ export class BlockDevice extends File implements AdapterSourceDestination {
 		drive,
 		unmountOnSuccess = false,
 		write = false,
-		direct = true,
+		direct = false,    // otherwise we get EINVAL read errors during growLastPartition()
 	}: {
 		drive: DrivelistDrive;
 		unmountOnSuccess?: boolean;
@@ -135,6 +138,10 @@ export class BlockDevice extends File implements AdapterSourceDestination {
 	}
 
 	public async canCreateSparseWriteStream(): Promise<boolean> {
+		return !this.drive.isReadOnly;
+	}
+
+	public async canGrowLastPartition(): Promise<boolean> {
 		return !this.drive.isReadOnly;
 	}
 
@@ -263,4 +270,107 @@ export class BlockDevice extends File implements AdapterSourceDestination {
 			return await super.write(buffer, bufferOffset, length, fileOffset);
 		}
 	}
+
+	public async growLastPartition(
+	): Promise<boolean> {
+
+		if (this.drive == null)
+			return false;
+
+		const driveSize = this.drive.size;
+		const blockSize = this.drive.blockSize;
+		if (driveSize == 0 || blockSize == 0)
+			return false;
+
+		var buffer = null;
+		var offset = 0;
+
+		// Get MBR
+
+		buffer = Buffer.alloc(blockSize);
+		offset = 0;
+
+		var { bytesRead } = await this.read(buffer, 0, buffer.length, offset);
+		if (bytesRead != buffer.length)
+			return false;
+
+		var mbr = null
+
+		try {
+			mbr = MBR.parse(buffer);
+		} catch (error) {
+			console.log("Failed to parse MBR:", error.message);
+			return false;
+		}
+
+		var efiPart = mbr.getEFIPart();
+		if (efiPart == null)
+			return false;
+
+		// Get primary GPT
+
+		buffer = Buffer.alloc(33 * blockSize);
+		offset = efiPart.type == 0xEE ?
+			efiPart.firstLBA * blockSize :
+			blockSize;
+
+		var { bytesRead } = await this.read(buffer, 0, buffer.length, offset);
+		if (bytesRead != buffer.length)
+			return false;
+
+		var primaryGPT = new GPT({ blockSize: blockSize });
+
+		try {
+			primaryGPT.parse(buffer);
+		} catch (error) {
+			console.log("Failed to parse primary GPT:", error.message);
+			return false;
+		}
+
+		// Get backup GPT
+
+		buffer = Buffer.alloc(33 * blockSize);
+		offset = (primaryGPT.backupLBA - 32) * blockSize;
+
+		var { bytesRead } = await this.read(buffer, 0, buffer.length, offset);
+		if (bytesRead != buffer.length)
+			return false;
+
+		var backupGPT = new GPT({ blockSize: blockSize });
+
+		try {
+			backupGPT.parseBackup(buffer);
+		} catch (error) {
+			console.log("Failed to parse backup GPT:", error.message);
+			return false;
+		}
+
+		// Move backup GPT to the end of disk (hence growing the last partition)
+
+		// @ts-ignore: Object is possibly 'null'
+		const n_blocks = Math.floor(driveSize / blockSize);
+		primaryGPT.moveBackup(n_blocks - 1);
+		backupGPT.moveBackup(n_blocks - 1);
+
+		// Write primary GPT
+
+		buffer = primaryGPT.write();
+		offset = primaryGPT.currentLBA * blockSize;
+
+		var { bytesWritten } = await this.write(buffer, 0, buffer.length, offset);
+		if (bytesWritten != buffer.length)
+			return false;
+
+		// Write backup GPT
+
+		buffer = backupGPT.writeBackup();
+		offset = backupGPT.tableOffset * blockSize;
+
+		var { bytesWritten } = await this.write(buffer, 0, buffer.length, offset);
+		if (bytesWritten != buffer.length)
+			return false;
+
+		return true;
+	}
+
 }

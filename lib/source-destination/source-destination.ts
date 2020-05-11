@@ -329,6 +329,10 @@ export class SourceDestination extends EventEmitter {
 		return false;
 	}
 
+	public async canGrowLastPartition(): Promise<boolean> {
+		return false;
+	}
+
 	public async getMetadata(): Promise<Metadata> {
 		if (this.metadata === undefined) {
 			this.metadata = await this._getMetadata();
@@ -383,6 +387,10 @@ export class SourceDestination extends EventEmitter {
 	public async createSparseWriteStream(
 		_options: { highWaterMark?: number } = {},
 	): Promise<SparseWritable> {
+		throw new NotCapable();
+	}
+
+	public async growLastPartition(): Promise<boolean> {
 		throw new NotCapable();
 	}
 
