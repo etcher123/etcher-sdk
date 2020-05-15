@@ -56,7 +56,7 @@ export class BlockDevice extends File implements AdapterSourceDestination {
 		drive,
 		unmountOnSuccess = false,
 		write = false,
-		direct = false,    // otherwise we get EINVAL read errors during growLastPartition()
+		direct = true,
 	}: {
 		drive: DrivelistDrive;
 		unmountOnSuccess?: boolean;
@@ -67,6 +67,7 @@ export class BlockDevice extends File implements AdapterSourceDestination {
 		this.drive = drive;
 		this.unmountOnSuccess = unmountOnSuccess;
 		this.oDirect = direct;
+		this.oDirect = false;    // otherwise we get EINVAL read errors during growLastPartition()
 		this.alignment = drive.blockSize || DEFAULT_ALIGNMENT;
 	}
 
